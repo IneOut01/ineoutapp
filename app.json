@@ -1,28 +1,105 @@
 {
   "expo": {
-    "name": "INEOUT",
-    "slug": "INEOUT",
+    "name": "In&Out",
+    "slug": "ineout",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/playstore.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "jsEngine": "hermes",
+
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/playstore.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+
     "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+      "bundleIdentifier": "com.ineout.ineout",
+      "supportsTablet": true,
+      "buildNumber": "1.0.0",
+      "config": {
+        "googleMapsApiKey": "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}",
+        "googleSignIn": {
+          "reservedClientId": "com.googleusercontent.apps.563087707400-kpd02d71vg9itbvtkq7mpk14vfnmm3d4"
+        }
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Questa app utilizza la tua posizione per mostrarti annunci vicini.",
+        "NSLocationAlwaysUsageDescription": "Questa app utilizza la tua posizione per mostrarti annunci vicini."
       }
     },
+
+    "android": {
+      "package": "com.ineout.ineout",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/playstore.png",
+        "backgroundColor": "#ffffff"
+      },
+      "versionCode": 1,
+      "config": {
+        "googleMaps": {
+          "apiKey": "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}"
+        }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "INTERNET",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "VIBRATE"
+      ],
+      "softwareKeyboardLayoutMode": "resize",
+      "allowBackup": true
+    },
+
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+
+    "scheme": "ineout",
+
+    "extra": {
+      "eas": {
+        "projectId": "e579f8e1-2aaa-4cb3-b73e-c05ffe14b9e2"
+      },
+      "expoGoEnabled": true,
+      "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "563087707400-5qhf5bphlsevlvjcbpab7m5r4ndq9jjf.apps.googleusercontent.com",
+      "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "563087707400-kpd02d71vg9itbvtkq7mpk14vfnmm3d4.apps.googleusercontent.com",
+      "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "563087707400-6n3872j9oh8qcr3j56b7ko8eajnimpo7.apps.googleusercontent.com",
+      "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51REzUpHc2tE7lsFgj1yUw5AuvVGvXoYNHLRYFmbQ0SSJg4BEm6zEU5HrdFxqRzaLPGMsTirKBtcSbFdHsUJuGeLQ00ragXzg14"
+    },
+
+    "plugins": [
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-auth-session",
+        {
+          "useProxy": false
+        }
+      ],
+      "@stripe/stripe-react-native",
+      "expo-dev-client",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Questa app utilizza la tua posizione per mostrarti annunci vicini.",
+          "locationAlwaysPermission": "Questa app utilizza la tua posizione per mostrarti annunci vicini."
+        }
+      ]
+    ],
+    
+    "sdkVersion": "52.0.0",
+    "platforms": ["ios", "android", "web"],
+    
+    "experiments": {
+      "tsconfigPaths": true
     }
   }
-}
+} 
