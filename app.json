@@ -4,13 +4,13 @@
     "slug": "ineout",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/playstore.png",
+    "icon": "./assets/ineout_logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "jsEngine": "hermes",
 
     "splash": {
-      "image": "./assets/playstore.png",
+      "image": "./assets/ineout_logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -38,7 +38,7 @@
     "android": {
       "package": "com.ineout.ineout",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/playstore.png",
+        "foregroundImage": "./assets/ineout_logo.png",
         "backgroundColor": "#ffffff"
       },
       "versionCode": 1,
