@@ -92,7 +92,8 @@
           "locationAlwaysAndWhenInUsePermission": "Questa app utilizza la tua posizione per mostrarti annunci vicini.",
           "locationAlwaysPermission": "Questa app utilizza la tua posizione per mostrarti annunci vicini."
         }
-      ]
+      ],
+      "./translucent-default-splash-screen-config.js"
     ],
     
     "sdkVersion": "52.0.0",
