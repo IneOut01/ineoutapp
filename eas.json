@@ -33,6 +33,27 @@
         "simulator": true
       }
     },
+    "basic-apk": {
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "withoutCredentials": true,
+        "distribution": "internal",
+        "developmentClient": false,
+        "releaseChannel": "default",
+        "env": {
+          "EXPO_NO_UPDATES": "1",
+          "EXPO_USE_DEV_SERVER": "1",
+          "EAS_BUILD_SKIP_CLEANUP": "1",
+          "ANDROID_NDK_VERSION": "25.1.8937393",
+          "ANDROID_CPP_VERSION": "20",
+          "EXPO_SKIP_NATIVE_VALIDATION": "1"
+        }
+      },
+      "cache": {
+        "disabled": true
+      }
+    },
     "diagnostic": {
       "distribution": "internal",
       "android": {
