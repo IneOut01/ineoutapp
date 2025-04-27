@@ -10,23 +10,22 @@ import {
 } from './src/services/diagnosticLogger';
 
 import React, { useEffect, useState } from 'react';
-import { registerRootComponent } from 'expo';
-import * as WebBrowser from 'expo-web-browser';
+import { AppRegistry, StyleSheet, Platform, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet, Platform, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ToastProvider } from 'react-native-toast-notifications';
 import { LanguageProvider } from './src/contexts/LanguageContext';
 import { AuthProvider } from './src/contexts/AuthContext';
-import { testApiConnection } from './src/services/testApiConnection';
+import { testApiConnection, checkApiConnectionInBackground } from './src/services/testApiConnection';
 import { StripeProvider } from '@stripe/stripe-react-native';
-import Constants from 'expo-constants';
 import './src/i18n'; // Importa e inizializza i18n
 import { errorHandler } from './src/services/devUtils';
-import { MobileDevWrapper } from './src/services/mobileDevSolution';
 import DiagnosticOverlay from './src/components/DiagnosticOverlay';
 import EmergencySplash from './src/components/EmergencySplash';
+
+// Inizializza il sistema di gestione errori globale
+setupGlobalErrorHandlers();
 
 // Log iniziale - Prima di tutto
 console.log('APP STARTUP: App.tsx - inizio caricamento');
@@ -38,20 +37,16 @@ if (typeof global.C0 === 'undefined') {
   (global as any).C0 = 0;
 }
 
-// Importante: completa la sessione di autenticazione del browser
-WebBrowser.maybeCompleteAuthSession();
-
 // Stripe publishable key
-const STRIPE_PUBLISHABLE_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || 
-  'pk_test_51REzUpHc2tE7lsFgj1yUw5AuvVGvXoYNHLRYFmbQ0SSJg4BEm6zEU5HrdFxqRzaLPGMsTirKBtcSbFdHsUJuGeLQ00ragXzg14';
+const STRIPE_PUBLISHABLE_KEY = 'pk_test_51REzUpHc2tE7lsFgj1yUw5AuvVGvXoYNHLRYFmbQ0SSJg4BEm6zEU5HrdFxqRzaLPGMsTirKBtcSbFdHsUJuGeLQ00ragXzg14';
 
 // Componente per gestire errori fatali
-const ErrorFallback = ({ error }) => {
+const ErrorFallback = ({ error, resetError }) => {
   const inDiagnosticMode = isDiagnosticMode();
   
   // In modalità diagnostic, usa EmergencySplash
   if (inDiagnosticMode) {
-    return <EmergencySplash error={error} isDiagnosticMode={true} />;
+    return <EmergencySplash error={error} isDiagnosticMode={true} onReset={resetError} />;
   }
   
   // Schermata di errore generica in produzione
@@ -62,11 +57,7 @@ const ErrorFallback = ({ error }) => {
         <Text style={styles.errorMessage}>
           L'app ha riscontrato un problema durante l'avvio.
         </Text>
-        {__DEV__ && (
-          <View style={styles.devErrorDetails}>
-            <Text style={styles.errorText}>{error.toString()}</Text>
-          </View>
-        )}
+        <Text style={styles.errorText}>{error.message}</Text>
       </View>
     </SafeAreaProvider>
   );
@@ -80,44 +71,41 @@ const MainApp = () => {
   useEffect(() => {
     console.log('APP STARTUP: MainApp - componente montato');
     
-    // Test di connessione all'API in modo non bloccante
-    const checkApiConnection = async () => {
+    // Test di connessione API in background
+    checkApiConnectionInBackground();
+    
+    // Inizializza Firebase in modo sicuro
+    const initializeFirebase = async () => {
       try {
-        console.log('APP STARTUP: Tentativo connessione API');
-        const result = await testApiConnection().catch(e => {
-          console.log('APP STARTUP: Errore API gestito, continuazione app');
-          captureApiError(e);
-          return false;
-        });
-        setApiStatus({ tested: true, connected: !!result });
-        reportApiConnected(!!result);
+        // Firebase viene inizializzato automaticamente
+        reportFirebaseInitialized();
+        console.log('APP STARTUP: Firebase inizializzato');
       } catch (error) {
-        console.log('APP STARTUP: Errore imprevisto in API test:', error);
-        captureApiError(error instanceof Error ? error : new Error(String(error)));
-        setApiStatus({ tested: true, connected: false });
-        reportApiConnected(false);
+        console.error('APP STARTUP: Errore inizializzazione Firebase:', error);
+        const typedError = error instanceof Error ? error : new Error(String(error));
+        captureFirebaseInitError(typedError);
+        // Non blocchiamo l'app per errori Firebase
       }
     };
     
-    // Inizializza Firebase
-    try {
-      // Firebase viene inizializzato automaticamente all'importazione
-      // da firebaseConfig.ts, qui registriamo solo il successo
-      reportFirebaseInitialized();
-      console.log('APP STARTUP: Firebase inizializzato');
-    } catch (error) {
-      console.error('APP STARTUP: Errore inizializzazione Firebase:', error);
-      captureFirebaseInitError(error instanceof Error ? error : new Error(String(error)));
-      setStartupError(error instanceof Error ? error : new Error(String(error)));
-    }
+    initializeFirebase().catch(console.error);
     
-    // Avvia il test API ma non blocca il rendering
-    checkApiConnection();
+    // Test API non bloccante
+    testApiConnection()
+      .then(result => {
+        setApiStatus({ tested: true, connected: result.success });
+        reportApiConnected(result.success);
+      })
+      .catch(error => {
+        console.error('APP STARTUP: Errore imprevisto in API test:', error);
+        setApiStatus({ tested: true, connected: false });
+        reportApiConnected(false);
+      });
   }, []);
 
   console.log('APP STARTUP: MainApp - rendering');
   
-  // In modalità diagnostica, se c'è un errore di avvio, mostra la schermata di errore
+  // Se c'è un errore fatale in modalità diagnostic
   if (isDiagnosticMode() && startupError) {
     return <EmergencySplash error={startupError} isDiagnosticMode={true} />;
   }
@@ -146,46 +134,35 @@ const MainApp = () => {
 };
 
 // App con gestione errori
-export default function App() {
-  console.log('APP STARTUP: App - render principale');
+const App = () => {
+  const [error, setError] = useState<Error | null>(null);
+  
+  const handleError = (error: Error) => {
+    console.error('APP STARTUP: Errore critico:', error);
+    captureError(error, 'critical_app_init');
+    setError(error);
+  };
+  
+  const resetError = () => {
+    setError(null);
+  };
+  
+  if (error) {
+    return <ErrorFallback error={error} resetError={resetError} />;
+  }
   
   try {
-    // In sviluppo, utilizza il wrapper di sviluppo mobile
-    if (__DEV__) {
-      console.log('APP STARTUP: Modalità sviluppo attivata');
-      return (
-        <MobileDevWrapper
-          renderApp={() => errorHandler.withErrorHandling(() => <MainApp />)}
-        />
-      );
-    }
-    
-    // In modalità diagnostic usa la gestione diagnostica
-    if (isDiagnosticMode()) {
-      console.log('APP STARTUP: Modalità diagnostic attivata');
-      try {
-        return <MainApp />;
-      } catch (error) {
-        const typedError = error instanceof Error ? error : new Error(String(error));
-        captureError(typedError, 'app_init_error');
-        return <EmergencySplash error={typedError} isDiagnosticMode={true} />;
-      }
-    }
-    
-    // In produzione usa comunque gestione errori
-    console.log('APP STARTUP: Modalità produzione');
-    return errorHandler.withErrorHandling(() => <MainApp />);
+    return <MainApp />;
   } catch (error) {
-    console.error('APP STARTUP: Errore critico durante inizializzazione:', error);
-    
-    // Cattura l'errore per la diagnostica
-    const typedError = error instanceof Error ? error : new Error(String(error));
-    captureError(typedError, 'critical_app_init');
-    
-    // Mostra UI di fallback
-    return <ErrorFallback error={typedError} />;
+    handleError(error instanceof Error ? error : new Error(String(error)));
+    return <ErrorFallback error={error} resetError={resetError} />;
   }
-}
+};
+
+// Register the app
+AppRegistry.registerComponent('IneOut', () => App);
+
+export default App;
 
 const styles = StyleSheet.create({
   container: {
@@ -210,17 +187,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
-  devErrorDetails: {
-    padding: 15,
-    backgroundColor: '#f1f1f1',
-    borderRadius: 8,
-    width: '100%',
-  },
   errorText: {
     fontSize: 14,
     color: '#555',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   }
 });
-
-// Non registrare il componente qui, ma in index.ts

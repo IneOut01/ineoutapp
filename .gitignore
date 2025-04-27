@@ -1,11 +1,6 @@
 ﻿# Dependencies
 node_modules/
 
-# Expo
-.expo/
-dist/
-web-build/
-
 # Native
 *.orig.*
 *.jks
@@ -14,8 +9,19 @@ web-build/
 *.key
 *.mobileprovision
 
+# Android/IntelliJ
+.cxx/
+*.keystore
+!debug.keystore
+.kotlin/
+
 # Metro
 .metro-health-check*
+
+# Expo (se usavi Expo in passato)
+.expo/
+dist/
+web-build/
 
 # debug
 npm-debug.*
@@ -26,15 +32,31 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# Local env files
 .env*.local
+**/.xcode.env.local
 
-# typescript
+# Typescript
 *.tsbuildinfo
 
 # Native folders for Prebuild
 /android
 /ios
+**/Pods/
+vendor/bundle/
+
+# Temporary files created by Metro to check the health of the file watcher
+
+# Testing
+/coverage
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
 # IDE
 .idea/

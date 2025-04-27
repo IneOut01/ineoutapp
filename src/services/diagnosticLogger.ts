@@ -1,14 +1,164 @@
-import { Platform } from 'react-native';
+import { Platform, ErrorUtils, LogBox } from 'react-native';
 import Constants from 'expo-constants';
 import axios from 'axios';
 
 // URL per inviare i log
 const LOG_SERVER_URL = 'https://ineoutapp.onrender.com/api/logs';
 
-// Flag per modalità diagnostic
-export const isDiagnosticMode = () => {
-  return Constants.expoConfig?.extra?.diagnosticMode === true;
+// Tipi di errori che possiamo tracciare
+export type ErrorType = 
+  | 'api_error'
+  | 'network_error'
+  | 'firebase_error'
+  | 'app_init_error'
+  | 'critical_app_init'
+  | 'runtime_error'
+  | 'async_error';
+
+// Interfaccia per gli errori strutturati
+interface StructuredError {
+  type: ErrorType;
+  error: Error;
+  context?: Record<string, any>;
+  timestamp: number;
+}
+
+// Coda degli errori per il reporting asincrono
+const errorQueue: StructuredError[] = [];
+let isErrorReportingEnabled = false;
+
+// Handler globale per errori non catturati
+const globalErrorHandler = (error: Error, isFatal?: boolean) => {
+  try {
+    console.error(`[${isFatal ? 'FATAL' : 'ERROR'}]`, error);
+    
+    // Struttura l'errore
+    const structuredError: StructuredError = {
+      type: isFatal ? 'critical_app_init' : 'runtime_error',
+      error,
+      context: {
+        isFatal,
+        stack: error.stack,
+      },
+      timestamp: Date.now(),
+    };
+    
+    // Aggiungi alla coda
+    errorQueue.push(structuredError);
+    
+    // Se il reporting è abilitato, invia subito
+    if (isErrorReportingEnabled) {
+      flushErrorQueue().catch(console.error);
+    }
+  } catch (e) {
+    // Fallback estremo
+    console.error('Error in error handler:', e);
+  }
 };
+
+// Handler per promise non gestite
+const unhandledPromiseRejectionHandler = (id: string, error: Error) => {
+  try {
+    console.error('[UNHANDLED PROMISE]', error);
+    
+    const structuredError: StructuredError = {
+      type: 'async_error',
+      error,
+      context: {
+        promiseId: id,
+        stack: error.stack,
+      },
+      timestamp: Date.now(),
+    };
+    
+    errorQueue.push(structuredError);
+    
+    if (isErrorReportingEnabled) {
+      flushErrorQueue().catch(console.error);
+    }
+  } catch (e) {
+    console.error('Error in promise rejection handler:', e);
+  }
+};
+
+// Invia gli errori al backend
+async function flushErrorQueue(): Promise<void> {
+  if (!errorQueue.length) return;
+  
+  try {
+    // TODO: Implementa la logica di invio al tuo backend
+    // const errors = [...errorQueue];
+    // errorQueue.length = 0;
+    // await sendErrorsToBackend(errors);
+  } catch (e) {
+    console.error('Failed to flush error queue:', e);
+  }
+}
+
+// Setup iniziale degli handler globali
+export function setupGlobalErrorHandlers() {
+  // Imposta gli handler globali
+  ErrorUtils.setGlobalHandler(globalErrorHandler);
+  
+  // Gestisci le promise non catturate
+  if (typeof global.process !== 'undefined') {
+    process.on('unhandledRejection', (reason: any) => {
+      unhandledPromiseRejectionHandler('unknown', reason instanceof Error ? reason : new Error(String(reason)));
+    });
+  }
+  
+  // Disabilita alcuni warning di sviluppo in produzione
+  if (!__DEV__) {
+    LogBox.ignoreAllLogs();
+  }
+  
+  isErrorReportingEnabled = true;
+}
+
+// Utility per catturare errori strutturati
+export function captureError(error: Error, type: ErrorType, context?: Record<string, any>) {
+  const structuredError: StructuredError = {
+    type,
+    error,
+    context,
+    timestamp: Date.now(),
+  };
+  
+  errorQueue.push(structuredError);
+  
+  if (isErrorReportingEnabled) {
+    flushErrorQueue().catch(console.error);
+  }
+}
+
+// Utility specifiche per diversi tipi di errori
+export function captureApiError(error: Error, context?: Record<string, any>) {
+  captureError(error, 'api_error', context);
+}
+
+export function captureFirebaseInitError(error: Error, context?: Record<string, any>) {
+  captureError(error, 'firebase_error', context);
+}
+
+// Utility per il diagnostic mode
+let diagnosticMode = false;
+
+export function enableDiagnosticMode() {
+  diagnosticMode = true;
+}
+
+export function isDiagnosticMode(): boolean {
+  return diagnosticMode;
+}
+
+// Utility per il reporting dello stato
+export function reportFirebaseInitialized() {
+  console.log('[DIAGNOSTIC] Firebase initialized successfully');
+}
+
+export function reportApiConnected(connected: boolean) {
+  console.log(`[DIAGNOSTIC] API connection status: ${connected ? 'connected' : 'disconnected'}`);
+}
 
 // Stato degli errori
 export type DiagnosticState = {
@@ -48,65 +198,10 @@ export const diagnosticState: DiagnosticState = {
 };
 
 /**
- * Cattura un errore e lo aggiunge al log
- */
-export const captureError = (error: Error, type = 'generic'): void => {
-  console.error(`DIAGNOSTIC [${type}]:`, error);
-  
-  const errorEntry = {
-    timestamp: Date.now(),
-    message: error.message || 'Errore sconosciuto',
-    stack: error.stack,
-    type
-  };
-  
-  // Aggiorna lo stato
-  diagnosticState.hasError = true;
-  diagnosticState.lastError = error;
-  diagnosticState.errorCount++;
-  diagnosticState.errorLog.push(errorEntry);
-  
-  // Invia al server se possibile
-  sendErrorToServer(errorEntry).catch(e => {
-    console.log('Impossibile inviare errore al server:', e.message);
-  });
-};
-
-/**
- * Cattura errori di inizializzazione Firebase
- */
-export const captureFirebaseInitError = (error: Error): void => {
-  captureError(error, 'firebase_init');
-};
-
-/**
- * Cattura errori di connessione API
- */
-export const captureApiError = (error: Error): void => {
-  captureError(error, 'api_connection');
-};
-
-/**
  * Cattura crash dell'app
  */
 export const captureCrash = (error: Error): void => {
-  captureError(error, 'app_crash');
-};
-
-/**
- * Segnala l'avvenuta inizializzazione di Firebase
- */
-export const reportFirebaseInitialized = (): void => {
-  diagnosticState.firebaseInitialized = true;
-  console.log('DIAGNOSTIC: Firebase inizializzato con successo');
-};
-
-/**
- * Segnala la connessione API
- */
-export const reportApiConnected = (connected: boolean): void => {
-  diagnosticState.isConnected = connected;
-  console.log(`DIAGNOSTIC: API ${connected ? 'connessa' : 'disconnessa'}`);
+  captureError(error, 'app_crash', { stack: error.stack });
 };
 
 /**
@@ -148,39 +243,6 @@ const sendErrorToServer = async (errorEntry: any): Promise<void> => {
   } catch (e) {
     console.log('DIAGNOSTIC: Errore invio log', e.message);
   }
-};
-
-/**
- * Intercetta errori globali
- */
-export const setupGlobalErrorHandlers = (): void => {
-  // Intercetta errori JS non catturati
-  const originalErrorHandler = ErrorUtils.getGlobalHandler();
-  
-  ErrorUtils.setGlobalHandler((error, isFatal) => {
-    captureError(
-      error instanceof Error ? error : new Error(error?.toString?.() || 'Errore sconosciuto'),
-      isFatal ? 'fatal_js_error' : 'js_error'
-    );
-    
-    // Chiama il gestore originale
-    originalErrorHandler(error, isFatal);
-  });
-  
-  // Intercetta Promise non gestite
-  const originalUnhandledRejection = global.onunhandledrejection;
-  
-  // @ts-ignore - Definito solo in ambiente non-browser
-  global.onunhandledrejection = (event: any) => {
-    const error = event?.reason || new Error('Promise non gestita');
-    captureError(error, 'unhandled_promise');
-    
-    if (originalUnhandledRejection) {
-      originalUnhandledRejection(event);
-    }
-  };
-  
-  console.log('DIAGNOSTIC: Handler errori globali configurati');
 };
 
 // Informazioni sul tempo di avvio

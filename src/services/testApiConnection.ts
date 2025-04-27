@@ -1,44 +1,63 @@
 import axios from 'axios';
+import { captureApiError } from './diagnosticLogger';
 
-export const testApiConnection = async () => {
+const API_TIMEOUT = 5000; // 5 secondi di timeout
+const API_BASE_URL = 'https://ineoutapp.onrender.com/api';
+
+interface ApiTestResult {
+  success: boolean;
+  error?: Error;
+  latency?: number;
+}
+
+export async function testApiConnection(): Promise<ApiTestResult> {
+  const startTime = Date.now();
+  
   try {
-    console.log('🔄 Test connessione API a:', process.env.EXPO_PUBLIC_API_BASE_URL || 'N/A');
+    // Crea un controller per il timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
     
-    // Imposta un timeout più breve per evitare blocchi
-    const axiosConfig = { timeout: 5000 };
+    // Tenta la connessione con timeout
+    const response = await axios.get(`${API_BASE_URL}/health`, {
+      timeout: API_TIMEOUT,
+      signal: controller.signal,
+      validateStatus: (status) => status === 200, // Accetta solo 200
+    });
     
-    if (!process.env.EXPO_PUBLIC_API_BASE_URL) {
-      console.log('⚠️ EXPO_PUBLIC_API_BASE_URL non configurato, test API saltato');
-      return false;
-    }
+    clearTimeout(timeoutId);
     
-    try {
-      const response = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_BASE_URL}/api/healthcheck`,
-        axiosConfig
-      );
-      console.log('✅ Connessione API riuscita:', response.data);
-      return true;
-    } catch (error) {
-      console.log('⚠️ Errore primo tentativo API:', error.message || 'Errore sconosciuto');
-      
-      // Prova con endpoint alternativo
-      try {
-        console.log('🔄 Tentativo con endpoint alternativo "/"');
-        const response = await axios.get(
-          `${process.env.EXPO_PUBLIC_API_BASE_URL}/`,
-          axiosConfig
-        );
-        console.log('✅ Connessione API riuscita all\'endpoint root:', response.data);
-        return true;
-      } catch (altError) {
-        console.log('⚠️ Errore anche all\'endpoint alternativo:', altError.message || 'Errore sconosciuto');
-        return false;
-      }
-    }
+    const latency = Date.now() - startTime;
+    
+    return {
+      success: true,
+      latency,
+    };
   } catch (error) {
-    // Cattura errori non previsti per evitare di bloccare l'avvio dell'app
-    console.log('⚠️ Errore imprevisto durante test API:', error);
-    return false;
+    const typedError = error instanceof Error ? error : new Error(String(error));
+    
+    // Cattura l'errore ma non bloccare l'app
+    captureApiError(typedError, {
+      url: `${API_BASE_URL}/health`,
+      duration: Date.now() - startTime,
+    });
+    
+    return {
+      success: false,
+      error: typedError,
+    };
   }
-}; 
+}
+
+// Utility per verificare la connessione in background
+export function checkApiConnectionInBackground(): void {
+  testApiConnection()
+    .then(result => {
+      if (!result.success) {
+        console.warn('Background API check failed:', result.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error in background API check:', error);
+    });
+} 

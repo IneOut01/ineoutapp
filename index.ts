@@ -4,7 +4,7 @@ import 'react-native-get-random-values';
 // Log di avvio
 console.log('APP STARTUP: index.ts - primo file caricato');
 
-import { registerRootComponent } from 'expo';
+import { AppRegistry } from 'react-native';
 import './spacing'; // Importa SPACING come globale prima di qualsiasi altro componente
 import App from './App';
 
@@ -14,9 +14,7 @@ global.SPACING = SPACING;
 
 console.log('APP STARTUP: index.ts - registrazione componente root');
 
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
-registerRootComponent(App);
+// Register the app
+AppRegistry.registerComponent('IneOut', () => App);
 
 // Verifico il contenuto
