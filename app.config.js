@@ -30,18 +30,19 @@ if (isDiagnosticMode) {
 }
 
 // Configurazione Expo che sovrascrive app.json
-module.exports = {
-  name: "In&Out",
+export default {
+  name: "IneOut",
   slug: "ineout",
+  scheme: "ineout",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/playstore.png",
+  icon: "./assets/icon.png",
   userInterfaceStyle: "light",
   newArchEnabled: true,
   jsEngine: "hermes",
 
   splash: {
-    image: "./assets/playstore.png",
+    image: "./assets/splash.png",
     resizeMode: "contain",
     backgroundColor: "#ffffff"
   },
@@ -51,37 +52,72 @@ module.exports = {
   ],
 
   ios: {
-    bundleIdentifier: "com.ineout.ineout",
     supportsTablet: true,
-    buildNumber: "1.0.0",
+    bundleIdentifier: "com.ineout.app",
     config: {
-      googleMapsApiKey: "AIzaSyD_yKwI0BTKnkJIUF8hyxUUZc32rSnkfBs",
-      googleSignIn: {
-        reservedClientId: `com.googleusercontent.apps.${process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || DEFAULT_IOS_CLIENT_ID}`
-      }
+      googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+    },
+    googleSignIn: {
+      reservedClientId: `com.googleusercontent.apps.${process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || DEFAULT_IOS_CLIENT_ID}`
+    },
+    infoPlist: {
+      NSLocationWhenInUseUsageDescription: "Allow IneOut to use your location.",
+      NSLocationAlwaysUsageDescription: "Allow IneOut to use your location."
     }
   },
 
   android: {
-    package: "com.ineout.ineout",
     adaptiveIcon: {
-      foregroundImage: "./assets/playstore.png",
+      foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff"
     },
-    versionCode: 1,
+    package: "com.ineout.app",
     config: {
       googleMaps: {
-        apiKey: "AIzaSyB8uW_LTgUrkzpRc4WxmGOtotvUOJkA8DI"
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
       }
-    }
+    },
+    permissions: [
+      "ACCESS_FINE_LOCATION",
+      "ACCESS_COARSE_LOCATION",
+      "INTERNET",
+      "READ_EXTERNAL_STORAGE",
+      "WRITE_EXTERNAL_STORAGE",
+      "VIBRATE"
+    ],
+    softwareKeyboardLayoutMode: "resize",
+    allowBackup: true
   },
 
   web: {
     favicon: "./assets/favicon.png"
   },
 
-  scheme: "ineout",
-
+  plugins: [
+    "expo-router",
+    [
+      "expo-location",
+      {
+        locationAlwaysAndWhenInUsePermission: "Allow IneOut to use your location."
+      }
+    ],
+    [
+      "expo-image-picker",
+      {
+        photosPermission: "The app accesses your photos to let you share them with your friends."
+      }
+    ],
+    "@react-native-google-signin/google-signin",
+    ["@stripe/stripe-react-native", 
+      {
+        "merchantIdentifier": "merchant.com.ineout.ineout",
+        "enableGooglePay": true
+      }
+    ],
+    "expo-dev-client",
+    "./translucent-default-splash-screen-config.js"
+  ],
+  
   // Forza l'utilizzo di Expo Go invece delle development builds
   experiments: {
     tsconfigPaths: true
@@ -90,10 +126,21 @@ module.exports = {
   // Rimuovi runtimeVersion e updates per essere compatibile con Expo Go
   // runtimeVersion e updates sono solo per EAS Update, non per Expo Go
   extra: {
+    router: {
+      origin: false
+    },
     eas: {
-      // projectId: "e579f8e1-2aaa-4cb3-b73e-c05ffe14b9e2"
       projectId: "4b927852-fd8b-485e-a738-46e339b44792"
     },
+    EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
+    EXPO_PUBLIC_FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    EXPO_PUBLIC_FIREBASE_PROJECT_ID: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    EXPO_PUBLIC_FIREBASE_APP_ID: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+    EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
+    EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     // Flag di modalità diagnostica
     diagnosticMode: isDiagnosticMode,
     googleMapsApiKey: "AIzaSyD_yKwI0BTKnkJIUF8hyxUUZc32rSnkfBs",
@@ -123,17 +170,7 @@ module.exports = {
     // Forza l'uso di Expo Go
     expoGoEnabled: true
   },
-
-  plugins: [
-    [
-      "expo-location",
-      {
-        "locationAlwaysAndWhenInUsePermission": "Allow In&Out to use your location."
-      }
-    ]
-  ],
-
-  // Proprietà per garantire che il progetto utilizzi Expo Go
+  
   sdkVersion: "52.0.0",
   platforms: ["ios", "android", "web"]
 }; 
