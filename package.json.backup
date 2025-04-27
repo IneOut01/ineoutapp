@@ -45,17 +45,14 @@
     "expo-random": "^14.0.1",
     "expo-router": "^4.0.20",
     "expo-status-bar": "~2.0.1",
-    "expo-system-ui": "^4.0.9",
     "expo-web-browser": "~14.0.2",
     "firebase": "^11.6.0",
     "fuse.js": "^7.1.0",
     "i18n-js": "^3.9.2",
     "lodash.debounce": "^4.0.8",
     "openai": "^4.96.0",
-    "react": "18.3.1",
     "react-hook-form": "^7.56.1",
     "react-i18next": "^15.5.1",
-    "react-native": "0.76.9",
     "react-native-animatable": "^1.4.0",
     "react-native-config": "^1.5.5",
     "react-native-geocoding": "^0.5.0",
@@ -83,7 +80,9 @@
     "redux": "^5.0.1",
     "supercluster": "^8.0.1",
     "use-places-autocomplete": "^4.0.1",
-    "yup": "^1.6.1"
+    "yup": "^1.6.1",
+    "react": "18.3.1",
+    "react-native": "0.76.9"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
