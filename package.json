@@ -69,7 +69,8 @@
     "redux": "4.2.1",
     "supercluster": "7.1.5",
     "use-places-autocomplete": "4.0.1",
-    "yup": "1.2.0"
+    "yup": "1.2.0",
+    "expo-localization": "~16.0.1"
   },
   "devDependencies": {
     "@babel/core": "7.23.2",
