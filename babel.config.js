@@ -1,19 +1,22 @@
 require('dotenv').config();
+
 module.exports = function (api) {
   api.cache(true);
   return {
-    module.exports = {
-      presets: ['module:metro-react-native-babel-preset'],
-      plugins: [
-        ['@babel/plugin-transform-optional-catch-binding'],
-      ["module:react-native-dotenv", {
-        "moduleName": "@env",
-        "path": ".env",
-        "blacklist": null,
-        "whitelist": null,
-        "safe": false,
-        "allowUndefined": true
-      }],
+    presets: ['module:metro-react-native-babel-preset'],
+    plugins: [
+      ['@babel/plugin-transform-optional-catch-binding'],
+      [
+        'module:react-native-dotenv',
+        {
+          moduleName: '@env',
+          path: '.env',
+          blacklist: null,
+          whitelist: null,
+          safe: false,
+          allowUndefined: true,
+        },
+      ],
       [
         'module-resolver',
         {
@@ -26,9 +29,10 @@ module.exports = function (api) {
             '@utils': './src/utils',
             '@constants': './src/constants',
           },
+          extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
         },
       ],
-      // ⬇️ DEVE essere l'ULTIMO plugin della lista
+      // ⬇️ IMPORTANTISSIMO: deve essere SEMPRE l'ultimo plugin
       'react-native-reanimated/plugin',
     ],
   };
