@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.application'
+    id 'com.facebook.react'
+}
+
+android {
+    namespace 'com.ineout.app'
+    compileSdkVersion 35
+    buildToolsVersion "35.0.0"
+
+    defaultConfig {
+        applicationId 'com.ineout.app'
+        minSdkVersion 21
+        targetSdkVersion 35
+        versionCode 1
+        versionName "1.0.0"
+        buildConfigField("boolean", "REACT_NATIVE_UNSTABLE_USE_RUNTIME_SCHEDULER_ALWAYS", (findProperty("reactNative.unstable_useRuntimeSchedulerAlways") ?: true).toString())
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+}
+
+dependencies {
+    implementation project(':expo')
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    // (Qui vanno anche le altre dipendenze se ne hai)
+}
