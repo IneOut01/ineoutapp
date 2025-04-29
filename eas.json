@@ -13,21 +13,13 @@
         "env": {
           "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyD_GycqSk5OwyrQerfQ3qDXCzEzZZ6DYnE"
         },
-        "image": "ubuntu-22.04-jdk-17-ndk-r25b",
-        "buildProperties": {
-          "compileSdkVersion": 35,
-          "targetSdkVersion": 35
-        }
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease",
-        "buildProperties": {
-          "compileSdkVersion": 35,
-          "targetSdkVersion": 35
-        }
+        "gradleCommand": ":app:bundleRelease"
       }
     }
   }
