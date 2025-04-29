@@ -5,8 +5,10 @@ module.exports = function (api) {
   return {
     presets: ['module:metro-react-native-babel-preset'],
     plugins: [
+      ['@babel/plugin-transform-class-properties', { loose: true }],
+      ['@babel/plugin-transform-private-methods', { loose: true }],
+      ['@babel/plugin-transform-private-property-in-object', { loose: true }],
       '@babel/plugin-transform-optional-catch-binding',
-      '@babel/plugin-transform-private-methods', // <-- AGGIUNTO QUESTO QUI
       [
         'module:react-native-dotenv',
         {
@@ -33,7 +35,7 @@ module.exports = function (api) {
           extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
         },
       ],
-      'react-native-reanimated/plugin', // Deve essere sempre l'ultimo!
+      'react-native-reanimated/plugin', // SEMPRE ultimo
     ],
   };
 };
