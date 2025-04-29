@@ -1,14 +1,8 @@
 {
-  "$schema": "https://json.schemastore.org/eas.json",
-  "cli": {
-    "version": ">=3.16.0",
-    "appVersionSource": "local"
-  },
   "build": {
     "preview": {
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease",
         "image": "ubuntu-22.04-jdk-17-ndk-r25b",
         "env": {
           "ANDROID_COMPILE_SDK_VERSION": "35",
