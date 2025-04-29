@@ -1,26 +1,36 @@
-// android/build.gradle
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
-    ext {
-        buildToolsVersion = "35.0.0"
-        minSdkVersion = 21
-        compileSdkVersion = 35
-        targetSdkVersion = 35
-        kotlinVersion = "1.9.22"
-    }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.2.2")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("com.google.gms:google-services:4.4.1")
+        classpath 'com.android.tools.build:gradle:8.3.0'
+        classpath 'com.google.gms:google-services:4.3.15'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25' // NECESSARIO per expo-image
     }
+}
+
+ext {
+    buildToolsVersion = findProperty('android.buildToolsVersion') ?: '35.0.0'
+    minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '24')
+    compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
+    targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '35')
+    kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.25'
+    ndkVersion = "26.1.10909125"
 }
 
 allprojects {
     repositories {
-        mavenCentral()
+        maven {
+            url(new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), '../android'))
+        }
+        maven {
+            url(new File(["node", "--print", "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
+        }
         google()
+        mavenCentral()
+        maven { url 'https://www.jitpack.io' }
     }
 }

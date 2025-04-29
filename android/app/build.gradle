@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
-    id 'com.facebook.react'
+    id 'com.google.gms.google-services'
+    id 'org.jetbrains.kotlin.android' // serve per kotlin-kapt usato da expo-image
 }
 
 android {
@@ -9,24 +10,48 @@ android {
     buildToolsVersion "35.0.0"
 
     defaultConfig {
-        applicationId 'com.ineout.app'
+        applicationId "com.ineout.app"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode 1
         versionName "1.0.0"
-        buildConfigField("boolean", "REACT_NATIVE_UNSTABLE_USE_RUNTIME_SCHEDULER_ALWAYS", (findProperty("reactNative.unstable_useRuntimeSchedulerAlways") ?: true).toString())
+        buildConfigField "boolean", "REACT_NATIVE_UNSTABLE_USE_RUNTIME_SCHEDULER_ALWAYS", (findProperty("reactNative.unstable_useRuntimeSchedulerAlways") ?: true).toString()
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.debug
+            shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
+            minifyEnabled (findProperty('android.enableProguardInReleaseBuilds')?.toBoolean() ?: false)
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
         }
     }
-}
 
-dependencies {
-    implementation project(':expo')
-    implementation fileTree(dir: "libs", include: ["*.jar"])
-    // (Qui vanno anche le altre dipendenze se ne hai)
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
+        }
+    }
+
+    androidResources {
+        ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+    }
+
+    // AGGIUNTO
+    buildFeatures {
+        buildConfig true
+    }
 }

@@ -12,6 +12,16 @@
           "disabled": true
         }
       }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b",
+        "env": {
+          "ANDROID_COMPILE_SDK_VERSION": "35",
+          "ANDROID_TARGET_SDK_VERSION": "35"
+        }
+      }
     }
   }
 }
