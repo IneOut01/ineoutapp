@@ -1,25 +1,29 @@
 {
   "$schema": "https://json.schemastore.org/eas.json",
   "cli": {
-    "version": ">=16.3.3",
+    "version": ">=3.16.3",
     "appVersionSource": "local"
   },
   "build": {
     "preview": {
+      "developmentClient": false,
+      "distribution": "internal",
       "android": {
         "buildType": "apk",
-        "distribution": "internal",
         "gradleCommand": ":app:assembleRelease",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b",
         "env": {
           "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyD_GycqSk5OwyrQerfQ3qDXCzEzZZ6DYnE"
-        },
-        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
+        }
       }
     },
     "production": {
+      "developmentClient": false,
+      "distribution": "store",
       "android": {
         "buildType": "app-bundle",
-        "gradleCommand": ":app:bundleRelease"
+        "gradleCommand": ":app:bundleRelease",
+        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
       }
     }
   }
