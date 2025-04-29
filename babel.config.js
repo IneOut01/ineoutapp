@@ -5,7 +5,8 @@ module.exports = function (api) {
   return {
     presets: ['module:metro-react-native-babel-preset'],
     plugins: [
-      ['@babel/plugin-transform-optional-catch-binding'],
+      '@babel/plugin-transform-optional-catch-binding',
+      '@babel/plugin-transform-private-methods', // <-- AGGIUNTO QUESTO QUI
       [
         'module:react-native-dotenv',
         {
@@ -32,8 +33,7 @@ module.exports = function (api) {
           extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
         },
       ],
-      // ⬇️ IMPORTANTISSIMO: deve essere SEMPRE l'ultimo plugin
-      'react-native-reanimated/plugin',
+      'react-native-reanimated/plugin', // Deve essere sempre l'ultimo!
     ],
   };
 };
