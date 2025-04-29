@@ -34,6 +34,7 @@
     "axios": "^1.9.0",
     "date-fns": "2.30.0",
     "expo": "~52.0.46",
+    "expo-auth-session": "~6.0.3",
     "expo-build-properties": "~0.13.2",
     "expo-image": "~2.0.7",
     "expo-image-manipulator": "~13.0.6",
@@ -48,6 +49,7 @@
     "fuse.js": "6.6.2",
     "i18n-js": "3.9.2",
     "lodash.debounce": "4.0.8",
+    "openai": "^4.96.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-hook-form": "7.45.1",
@@ -76,8 +78,7 @@
     "redux": "4.2.1",
     "supercluster": "7.1.5",
     "use-places-autocomplete": "4.0.1",
-    "yup": "1.2.0",
-    "expo-auth-session": "~6.0.3"
+    "yup": "1.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
